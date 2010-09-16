@@ -7,9 +7,7 @@ fs    = require 'fs'
 sys   = require 'sys'
 path  = require 'path'
 io    = require '/Users/pjscott/web/socket.io-node'
-redis = require './redis-client'
-
-r = redis.createClient()
+users = require './users'
 
 server = http.createServer (request, response) ->
   pathname = (url.parse request.url).pathname
