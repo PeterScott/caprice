@@ -1,14 +1,13 @@
 # Caprice server for Node.js, in CoffeeScript. Uses Redis as a
 # backend, and Socket.IO for communication with the browser.
 
-require.paths.unshift '.'
 http  = require 'http'
 url   = require 'url'
 fs    = require 'fs'
 sys   = require 'sys'
 path  = require 'path'
 io    = require '/Users/pjscott/web/socket.io-node'
-redis = require 'redis-client'
+redis = require './redis-client'
 
 r = redis.createClient()
 
@@ -44,17 +43,20 @@ writeFile = (response, pathname, mimetype) ->
           response.write file, "binary"
           response.end()
 
-# Redis helper function
+# Redis helper function. Runs a list of Redis commands as a
+# transaction with EXEC/MULTI. If any error is encountered while
+# queueing commands, the callback is called with that error.
 redis_txn = (commands, callback) ->
   run_commands = (cmds) ->
     if cmds.length > 0
       cmd = cmds.shift()
-      cmd.push((e) -> run_commands cmds)
+      cmd.push (e) ->
+        if e then callback e else run_commands cmds
       r.sendCommand.apply r, cmd
     else
       r.exec callback
   r.multi (e) ->
-    run_commands commands
+    if e then callback e else run_commands commands
 
 # FIXME: put all chat room state in Redis!
 #
