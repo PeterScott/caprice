@@ -67,7 +67,7 @@ socket.on 'connection', (client) ->
             action: 'connected'
           }
     else
-      client.broadcast msg
+      other.send msg for other in users.room_clients msg.room
   client.on 'disconnect', ->
     # Remove user from Redis.
     users.remove_from_all_rooms client, (clients) ->

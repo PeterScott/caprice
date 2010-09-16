@@ -30,7 +30,7 @@ $ ->
   $("#chatline").keypress (e) ->
     if e.keyCode == 13
       text = $("#chatline").val()
-      socket.send {name: username, text: text}
+      socket.send {name: username, text: text, room: chatroom}
       show_message username, text
       $("#chatline").val ''
 
@@ -50,6 +50,7 @@ socket.on 'connect', ->
   connected = true
   console.log "Connected to server"
   $("#log").append "<p>Connected to server</p>"
+  if username? then socket.send {connect: {name: username, room: chatroom}}
 
 socket.on 'disconnect', ->
   connected = false
