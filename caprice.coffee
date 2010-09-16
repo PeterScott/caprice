@@ -41,21 +41,6 @@ writeFile = (response, pathname, mimetype) ->
           response.write file, "binary"
           response.end()
 
-# Redis helper function. Runs a list of Redis commands as a
-# transaction with EXEC/MULTI. If any error is encountered while
-# queueing commands, the callback is called with that error.
-redis_txn = (commands, callback) ->
-  run_commands = (cmds) ->
-    if cmds.length > 0
-      cmd = cmds.shift()
-      cmd.push (e) ->
-        if e then callback e else run_commands cmds
-      r.sendCommand.apply r, cmd
-    else
-      r.exec callback
-  r.multi (e) ->
-    if e then callback e else run_commands commands
-
 # FIXME: put all chat room state in Redis!
 #
 # Redis keys:
@@ -72,32 +57,28 @@ socket.on 'connection', (client) ->
     if msg.connect?
       client.username = msg.connect.name
       # Add user info to Redis
-      redis_txn [["set", "chat:uname:#{client.username}", client.sessionId],
-                 ["set",  "chat:sid:#{client.sessionId}", client.username],
-                 ["sadd", "chat:r:#{msg.connect.room}:clientIds", client.sessionId],
-                 ["sadd", "chat:r:#{msg.connect.room}:clientNames", client.username],
-                 ["sadd", "chat:#{client.username}:rooms", msg.connect.room]], (e) ->
-        console.log "Client #{client.username} (#{client.sessionId}) added to room #{msg.connect.room}"
+      users.add_to_room client, msg.connect.room, (clients) ->
+        # Broadcast new-user notification
+        for name, c of clients
+          console.log "    Telling #{name} about new user #{client.username}"
+          c.send {
+            announcement: true,
+            name: client.username,
+            action: 'connected'
+          }
     else
       client.broadcast msg
   client.on 'disconnect', ->
     # Remove user from Redis.
-    r.smembers "chat:#{client.username}:rooms", (e, data) ->
-      console.log data.toString()
-      txn = [["del", "chat:uname:#{client.username}"],
-             ["del", "chat:sid:#{client.sessionId}"],
-             ["del", "chat:#{client.username}:rooms"]]
-      for room in data
-        txn.push ["srem", "chat:r:#{room}:clientIds", client.sessionId]
-        txn.push ["srem", "chat:r:#{room}:clientNames", client.username]
-      redis_txn txn, (e) ->
+    users.remove_from_all_rooms client, (clients) ->
         # Broadcast the disconnect announcement to everyone else.
-        console.log "Client #{client.username} (#{client.sessionId}) disconnected."
-        client.broadcast {
-          announcement: true,
-          name: client.username || "anonymous",
-          action: 'disconnected'
-        }
+        for name, c of clients
+          console.log "    Telling #{name} about disconnection of #{client.username}"
+          c.send {
+            announcement: true,
+            name: client.username || "anonymous",
+            action: 'disconnected'
+          }
 
 # Start the server
 server.listen 8124

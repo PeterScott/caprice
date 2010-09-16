@@ -55,32 +55,44 @@ rooms = {}
 
 # Add a client to a room, both in Redis and to the rooms object, and
 # return the username:client mapping.
-add_to_room = (client, room, callback) ->
-  redis_txn [["set", "chat:uname:#{client.username}", client.sessionId],
-             ["set",  "chat:sid:#{sessionId}", client.username],
-             ["sadd", "chat:r:#{room}:clientIds", client.sessionId],
-             ["sadd", "chat:r:#{room}:clientNames", client.username],
-             ["sadd", "chat:#{client.username}:rooms", room]], (e) ->
+exports.add_to_room = (client, room, callback) ->
+#  console.log client
+  console.log client.sessionId
+  txn = [["set",  "chat:uname:#{client.username}", client.sessionId],
+         ["set",  "chat:sid:#{client.sessionId}",  client.username],
+         ["sadd", "chat:r:#{room}:clientIds",      client.sessionId],
+         ["sadd", "chat:r:#{room}:clientNames",    client.username],
+         ["sadd", "chat:#{client.username}:rooms", room]]
+  redis_txn txn, (e) ->
     redis_check_error e
     console.log "Client #{client.username} (#{client.sessionId}) added to room #{room}"
     rooms[room] = new ClientSet() unless rooms.hasOwnProperty room
     rooms[room].add client
     callback rooms[room].items
 
-# Remove a client from a room, both in Redis and to the rooms object,
-# and return the username:client mapping.
-remove_from_room = (client, room, callback) ->
+# Remove a client from all rooms, both in Redis and to the rooms object,
+# and return the username:client mapping for everybody in those rooms.
+exports.remove_from_all_rooms = (client, callback) ->
   r.smembers "chat:#{client.username}:rooms", (e, data) ->
+    return callback {} unless data?
     txn = [["del", "chat:uname:#{client.username}"],
            ["del", "chat:sid:#{client.sessionId}"],
            ["del", "chat:#{client.username}:rooms"]]
     for room in data
+      room = room.toString()
       txn.push ["srem", "chat:r:#{room}:clientIds", client.sessionId]
       txn.push ["srem", "chat:r:#{room}:clientNames", client.username]
-    redis_txn txn, (e) ->
-      redis_check_error e
-      console.log "Client #{client.username} (#{client.sessionId}) disconnected."
       if rooms.hasOwnProperty room
         rooms[room].remove client
         if rooms[room].empty() then delete rooms[room]
-      callback (if rooms.hasOwnProperty room then rooms[room] else {})
+    redis_txn txn, (e) ->
+      redis_check_error e
+      console.log "Client #{client.username} (#{client.sessionId}) disconnected."
+      # Build list of users to tell about this person's departure.
+      affected_users = new ClientSet()
+      for room in data
+        room = room.toString()
+        if rooms.hasOwnProperty room
+          for name, cli of rooms[room].items
+            affected_users.add cli
+      callback affected_users.items
