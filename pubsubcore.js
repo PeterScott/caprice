@@ -1,5 +1,6 @@
 // PubSubCore: Simple pub/sub library for Node.js and Socket.IO
 
+var sys  = require('sys');
 var sets = require('simplesets');
 var io   = require('/Users/pjscott/web/socket.io-node')
 
@@ -62,13 +63,14 @@ function room_clients(room) {
 var handlers = [];
 
 // Add a handler function for a channel denoted by a given regexp. The
-// regexp can be either a regular expression object or a string, which
-// will be compiled into a RegExp before being added to the list. The
+// regexp can be either a regular expression object or a string. The
 // handler takes a Socket.IO client object and a JSON message as
 // arguments. The message has a room property.
 exports.add_handler = function(regexp, handler) {
+    var re2;
     if (typeof(regexp) == 'string')
-	regexp = new RegExp(regexp);
+	re2 = {test: function(str) { return str === regexp; }};
+    else re2 = regexp;
     handlers.push([regexp, handler]);
 }
 
@@ -115,11 +117,11 @@ exports.listen = function(server) {
 		}
 	    } else {
 		// Dispatch to channel handler function
-		if (!msg.room) {
-		    console.log("Unknown channel for message:", msg);
-		    client.send({error: 'Unknown channel "' + msg.room + '"'});
+		if (!msg.channel) {
+		    console.log("Unknown channel for message:", sys.inspect(msg));
+		    client.send({error: 'Unknown channel "' + msg.channel + '"'});
 		} else {
-		    get_handler(msg.room)(client, msg);
+		    get_handler(msg.channel)(client, msg);
 		}
 	    }
 	});

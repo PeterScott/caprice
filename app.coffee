@@ -1,5 +1,3 @@
-socket = new io.Socket
-
 #
 # Chatting code here
 #
@@ -23,50 +21,36 @@ $ ->
     if username.length == 0 or chatroom.length == 0
       alert "You must enter a username and chatroom"
     else
-      socket.send {connect: {name: username, room: chatroom}}
+      PubSubCore.join_room username, chatroom;
+      PubSubCore.add_handler chatroom, chat_handler
       $("#signin").hide()
       $("#chat").show()
 
   $("#chatline").keypress (e) ->
     if e.keyCode == 13
       text = $("#chatline").val()
-      socket.send {name: username, text: text, room: chatroom}
+      PubSubCore.send(chatroom, {name: username, text: text});
       $("#chatline").val ''
 
 chat_handler = (msg) ->
-  if msg.announcement?
-    $('#chatwindow').append "<p><i>#{msg.name} #{msg.action}</i></p>"
-  else
-    show_message msg.name, msg.text
+  show_message msg.name, msg.text
+
+PubSubCore.onannounce = (msg) ->
+  $('#chatwindow').append "<p><i>#{msg.name} #{msg.action}</i></p>"
 
 #
 # Connection code
 #
 
-connected = false;
-
-socket.on 'connect', ->
-  connected = true
-  console.log "Connected to server"
+PubSubCore.onconnect = ->
   $("#log").append "<p>Connected to server</p>"
-  if username? then socket.send {connect: {name: username, room: chatroom}}
+  if username? then PubSubCore.join_room(username, chatroom)
 
-socket.on 'disconnect', ->
-  connected = false
-  console.log "Server connection lost"
+PubSubCore.ondisconnect = ->
   $("#log").append "<p>Server connection lost</p>"
-  setTimeout reconnect, 5000 # Reconnect in 5 seconds
 
-socket.on 'message', (msg) ->
+PubSubCore.onmessage = (msg) ->
   json_msg = JSON.stringify msg
   $("#log").append "<p>Message: #{json_msg}</p>"
-  chat_handler msg
 
-# Try to reconnect every five seconds until we succeed.
-reconnect = ->
-  console.log "Trying to connect. Retry in 5 seconds."
-  socket.connect()
-  setTimeout (() -> reconnect() unless connected), 5000
-
-# Initially connect
-reconnect()
+PubSubCore.connect()

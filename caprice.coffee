@@ -18,7 +18,9 @@ server = http.createServer (request, response) ->
       writeFile response, pathname, "text/html"
     when '/style.css'
       writeFile response, pathname, "text/css"
-    when '/app.js'
+    when '/pubsubcore-client.js'
+      writeFile response, pathname, "text/javascript"
+    when '/app2.js'
       writeFile response, pathname, "text/javascript"
     else
       response.writeHead 404, {"Content-Type": "text/plain"}
@@ -41,8 +43,10 @@ writeFile = (response, pathname, mimetype) ->
           response.end()
 
 pubsub.listen(server)
-pubsub.add_handler '', (client, msg) ->
-  console.log "MSG:", msg
+pubsub.add_handler /.*/, (client, msg) ->
+  console.log "MSG:", sys.inspect(msg)
+  msg.room = msg.channel
+  delete msg.channel
   pubsub.broadcast_room msg.room, msg
 
 # Start the server
