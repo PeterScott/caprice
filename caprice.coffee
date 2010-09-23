@@ -47,10 +47,10 @@ socket.on 'connection', (client) ->
     console.log msg
     if msg.connect?
       client.username = msg.connect.name
-      # Add user info to Redis
+      # Add user info to the current dramatis personae.
       users.add_to_room client, msg.connect.room, (clients) ->
         # Broadcast new-user notification
-        for sig, c of clients
+        for c in clients
           c.send {
             announcement: true,
             name: client.username,
@@ -62,7 +62,7 @@ socket.on 'connection', (client) ->
     # Remove user from Redis.
     users.remove_from_all_rooms client, (clients) ->
         # Broadcast the disconnect announcement to everyone else.
-        for sid, c of clients
+        for c in clients
           c.send {
             announcement: true,
             name: client.username || "anonymous",
