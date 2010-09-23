@@ -6,7 +6,7 @@ url    = require 'url'
 fs     = require 'fs'
 sys    = require 'sys'
 path   = require 'path'
-pubsub = require './pubsubcore'
+pubsub = require 'pubsubcore'
 
 server = http.createServer (request, response) ->
   pathname = (url.parse request.url).pathname
@@ -20,7 +20,7 @@ server = http.createServer (request, response) ->
       writeFile response, pathname, "text/css"
     when '/pubsubcore-client.js'
       writeFile response, pathname, "text/javascript"
-    when '/app2.js'
+    when '/app.js'
       writeFile response, pathname, "text/javascript"
     else
       response.writeHead 404, {"Content-Type": "text/plain"}
