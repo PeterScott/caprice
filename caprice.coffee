@@ -1,13 +1,12 @@
 # Caprice server for Node.js, in CoffeeScript. Uses Redis as a
 # backend, and Socket.IO for communication with the browser.
 
-http  = require 'http'
-url   = require 'url'
-fs    = require 'fs'
-sys   = require 'sys'
-path  = require 'path'
-io    = require '/Users/pjscott/web/socket.io-node'
-users = require './users'
+http   = require 'http'
+url    = require 'url'
+fs     = require 'fs'
+sys    = require 'sys'
+path   = require 'path'
+pubsub = require './pubsubcore'
 
 server = http.createServer (request, response) ->
   pathname = (url.parse request.url).pathname
@@ -41,33 +40,10 @@ writeFile = (response, pathname, mimetype) ->
           response.write file, "binary"
           response.end()
 
-socket = io.listen(server)
-socket.on 'connection', (client) ->
-  client.on 'message', (msg) ->
-    console.log msg
-    if msg.connect?
-      client.username = msg.connect.name
-      # Add user info to the current dramatis personae.
-      users.add_to_room client, msg.connect.room, (clients) ->
-        # Broadcast new-user notification
-        for c in clients
-          c.send {
-            announcement: true,
-            name: client.username,
-            action: 'connected'
-          }
-    else
-      other.send msg for other in users.room_clients msg.room
-  client.on 'disconnect', ->
-    # Remove user from Redis.
-    users.remove_from_all_rooms client, (clients) ->
-        # Broadcast the disconnect announcement to everyone else.
-        for c in clients
-          c.send {
-            announcement: true,
-            name: client.username || "anonymous",
-            action: 'disconnected'
-          }
+pubsub.listen(server)
+pubsub.add_handler '', (client, msg) ->
+  console.log "MSG:", msg
+  pubsub.broadcast_room msg.room, msg
 
 # Start the server
 server.listen 8124
