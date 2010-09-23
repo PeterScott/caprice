@@ -1,55 +1,10 @@
-## r = (require './redis-client').createClient()
-##
-## # Redis helper function. Runs a list of Redis commands as a
-## # transaction with EXEC/MULTI. If any error is encountered while
-## # queueing commands, the callback is called with that error.
-## redis_txn = (commands, callback) ->
-##   run_commands = (cmds) ->
-##     if cmds.length > 0
-##       cmd = cmds.shift()
-##       cmd.push (e) ->
-##         if e then callback e else run_commands cmds
-##       r.sendCommand.apply r, cmd
-##     else
-##       r.exec callback
-##   r.multi (e) ->
-##     if e then callback e else run_commands commands
-##
-## redis_check_error = (e) ->
-##   if e then throw new Error(e)
+sets = require 'simplesets'
 
 #############################
 # Set data types
 #############################
 
-# A simple set data type, for string objects
-class StringSet
-  # Create an empty set
-  constructor: ->
-    @items = {}
-    @size = 0
-
-  # Add an item to the set, destructively.
-  add: (x) ->
-    @size++ unless @has x
-    @items[x] = true
-    return this
-
-  # Remove an item from the set, destructively.
-  remove: (x) ->
-    delete @items[x]
-    @size--
-    return this
-
-  # Does the set contain a given item?
-  has: (x) ->
-    return @items.hasOwnProperty x
-
-  # Is the set empty?
-  empty: ->
-    return @size == 0
-
-# A simple set data type, for Client objects with username properties.
+# A simple set data type, for Client objects
 class ClientSet
   # Create an empty set
   constructor: ->
@@ -59,18 +14,18 @@ class ClientSet
   # Add an item to the set, destructively.
   add: (x) ->
     @size++ unless @has x
-    @items[x.username] = x
+    @items[x.sessionId] = x
     return this
 
   # Remove an item from the set, destructively.
   remove: (x) ->
-    delete @items[x.username]
+    delete @items[x.sessionId]
     @size--
     return this
 
   # Does the set contain a given item?
   has: (x) ->
-    return @items.hasOwnProperty x.username
+    return @items.hasOwnProperty x.sessionId
 
   # Is the set empty?
   empty: ->
@@ -82,15 +37,15 @@ class ClientSet
 
 # Dict mapping room names with people to sets of client objects.
 rooms = {}
-# Dict mapping usernames to sets of rooms.
-user_rooms = {}
+# Dict mapping sids to sets of rooms.
+sid_rooms = {}
 
 # Add a client to a room, both in Redis and to the rooms object, and
-# return the username:client mapping.
+# return the sid:client mapping.
 exports.add_to_room = (client, room, callback) ->
   console.log "Client #{client.username} (#{client.sessionId}) added to room #{room}"
-  user_rooms[client.username] = new StringSet() unless user_rooms.hasOwnProperty client.username
-  user_rooms[client.username].add room
+  sid_rooms[client.sessionId] = new sets.Set() unless sid_rooms.hasOwnProperty client.sessionId
+  sid_rooms[client.sessionId].add room
   rooms[room] = new ClientSet() unless rooms.hasOwnProperty room
   rooms[room].add client
   callback rooms[room].items
@@ -98,17 +53,17 @@ exports.add_to_room = (client, room, callback) ->
 # Remove a client from all rooms, both in Redis and to the rooms object,
 # and return the username:client mapping for everybody in those rooms.
 exports.remove_from_all_rooms = (client, callback) ->
-  affected_users = new ClientSet()
-  for room, t of (user_rooms[client.username]?.items or {})
+  affected_clients = new ClientSet()
+  for room in (sid_rooms[client.sessionId]?.array() or [])
     if rooms.hasOwnProperty room
       rooms[room].remove client
       if rooms[room].empty() then delete rooms[room]
     if rooms.hasOwnProperty room
-      for name, cli of rooms[room].items
-        affected_users.add cli
+      for sid, cli of rooms[room].items
+        affected_clients.add cli
   console.log "Client #{client.username} (#{client.sessionId}) disconnected."
-  delete user_rooms[client.username]
-  callback affected_users.items
+  delete sid_rooms[client.sessionId]
+  callback affected_clients.items
 
 exports.room_clients = (room) ->
   ret = []

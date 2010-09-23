@@ -31,14 +31,13 @@ $ ->
     if e.keyCode == 13
       text = $("#chatline").val()
       socket.send {name: username, text: text, room: chatroom}
-      show_message username, text
       $("#chatline").val ''
 
 chat_handler = (msg) ->
   if msg.announcement?
     $('#chatwindow').append "<p><i>#{msg.name} #{msg.action}</i></p>"
   else
-    show_message msg.name, msg.text if msg.name != username
+    show_message msg.name, msg.text
 
 #
 # Connection code

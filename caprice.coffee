@@ -41,15 +41,6 @@ writeFile = (response, pathname, mimetype) ->
           response.write file, "binary"
           response.end()
 
-# FIXME: put all chat room state in Redis!
-#
-# Redis keys:
-#   chat:r:[roomname]:clientIds   --  set of session ids in room
-#   chat:r:[roomname]:clientNames --  set of usernames in room
-#   chat:uname:[username]         --  session id of username
-#   chat:sid:[session-id]         --  username of session id
-#   chat:[username]:rooms         --  rooms that user is in
-
 socket = io.listen(server)
 socket.on 'connection', (client) ->
   client.on 'message', (msg) ->
@@ -59,8 +50,7 @@ socket.on 'connection', (client) ->
       # Add user info to Redis
       users.add_to_room client, msg.connect.room, (clients) ->
         # Broadcast new-user notification
-        for name, c of clients
-          console.log "    Telling #{name} about new user #{client.username}"
+        for sig, c of clients
           c.send {
             announcement: true,
             name: client.username,
@@ -72,8 +62,7 @@ socket.on 'connection', (client) ->
     # Remove user from Redis.
     users.remove_from_all_rooms client, (clients) ->
         # Broadcast the disconnect announcement to everyone else.
-        for name, c of clients
-          console.log "    Telling #{name} about disconnection of #{client.username}"
+        for sid, c of clients
           c.send {
             announcement: true,
             name: client.username || "anonymous",
