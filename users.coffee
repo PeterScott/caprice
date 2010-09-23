@@ -26,7 +26,7 @@ exports.remove_from_all_rooms = (client, callback) ->
   for room in (sid_rooms[client.sessionId]?.array() or [])
     if rooms.hasOwnProperty room
       rooms[room].remove client
-      if rooms[room].size() === 0 then delete rooms[room]
+      if rooms[room].size() == 0 then delete rooms[room]
     if rooms.hasOwnProperty room
       for cli in rooms[room].array()
         affected_clients.add cli
