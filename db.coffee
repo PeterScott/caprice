@@ -31,6 +31,9 @@ exports.create_weave = (callback) ->
     callback err, uuid
 
 # Return true if patch is valid, false otherwise.
+#
+# FIXME: The server should check to make sure that the patch refers
+# to predecessor nodes which are under the current awareness weft.
 patch_valid = (patch) ->
   # Patches must be lists; here, we check object type and length
   if typeof(patch) != 'object' then return false

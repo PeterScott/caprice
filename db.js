@@ -1,5 +1,5 @@
 (function() {
-  var libuuid, redis, redislib, sys;
+  var libuuid, patch_valid, redis, redislib, sys;
   redislib = require('redis');
   redis = redislib.createClient();
   libuuid = require('uuid');
@@ -45,5 +45,42 @@
     return redis.set(uuid + ':weave5c', '\u09500101\u06DD0102', function(err) {
       return callback(err, uuid);
     });
+  };
+  patch_valid = function(patch) {
+    if (typeof (patch) !== 'object') {
+      return false;
+    }
+    if (patch.length === undefined) {
+      return false;
+    }
+    if (patch[1].length % 5 !== 0) {
+      return false;
+    }
+    if (patch[2] && patch[2].length % 2 !== 0) {
+      return false;
+    }
+    if (patch[0] === 'i' && (patch.length === 2 || patch.length === 3)) {
+      return true;
+    }
+    if (patch[0] === 'd' && patch.length === 2) {
+      return true;
+    }
+    if (patch[0] === 's' && patch.length === 2) {
+      return true;
+    }
+    return false;
+  };
+  exports.add_patch = function(uuid, patch, callback) {
+    var txn;
+    if (!(patch_valid(patch))) {
+      return callback('Invalid patch: ' + sys.inspect(patch));
+    } else {
+      txn = redis.multi();
+      txn.rpush(uuid + ':patches', JSON.stringify(patch));
+      txn.sadd('pending-set', uuid);
+      return txn.exec(function(err) {
+        return callback(err);
+      });
+    }
   };
 })();
