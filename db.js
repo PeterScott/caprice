@@ -1,7 +1,9 @@
 (function() {
-  var redis, redislib;
+  var libuuid, redis, redislib, sys;
   redislib = require('redis');
   redis = redislib.createClient();
+  libuuid = require('uuid');
+  sys = require('sys');
   exports.weave_exists = function(uuid, callback) {
     return redis.exists(uuid + ':weave5c', function(err, exists_num) {
       return callback(err ? false : exists_num > 0);
@@ -27,12 +29,21 @@
           _b = []; _d = patches_buf;
           for (_c = 0, _e = _d.length; _c < _e; _c++) {
             p = _d[_c];
-            _b.push(JSON.parse(p.toString('ascii')));
+            if (p) {
+              _b.push(JSON.parse(p.toString('ascii')));
+            }
           }
           return _b;
         })();
         return callback(null, weave5c, patches);
       }
+    });
+  };
+  exports.create_weave = function(callback) {
+    var uuid;
+    uuid = libuuid.generate();
+    return redis.set(uuid + ':weave5c', '\u09500101\u06DD0102', function(err) {
+      return callback(err, uuid);
     });
   };
 })();
