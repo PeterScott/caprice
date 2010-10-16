@@ -1,10 +1,11 @@
 (function() {
-  var WEB_ROOT, db, http, paperboy, path, pubsub, server;
+  var WEB_ROOT, db, http, paperboy, path, pubsub, server, sys;
   http = require('http');
   path = require('path');
   pubsub = require('pubsubcore');
   paperboy = require('paperboy');
   db = require('./db');
+  sys = require('sys');
   WEB_ROOT = path.join(path.dirname(__filename), 'webroot');
   server = http.createServer(function(request, response) {
     return paperboy.deliver(WEB_ROOT, request, response);
@@ -54,8 +55,21 @@
       });
     });
   });
-  pubsub.add_handler(/^\/weave\/ins\/.*/, function(client, msg) {
-    return console.log(sys.inspect(msg));
+  pubsub.add_handler(/^\/weave\/.*/, function(client, msg) {
+    var uuid;
+    uuid = msg.channel.substr(7);
+    return db.weave_exists(uuid, function(exists) {
+      return (!exists) ? client.send({
+        error: 'No weave exists with UUID ' + uuid
+      }) : db.add_patch(uuid, msg.data, function(err) {
+        return err ? client.send({
+          error: err
+        }) : pubsub.broadcast_room(msg.channel, {
+          room: msg.channel,
+          data: msg.data
+        });
+      });
+    });
   });
   server.listen(8124);
   console.log('Server running at http://127.0.0.1:8124/');

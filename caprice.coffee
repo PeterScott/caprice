@@ -4,6 +4,7 @@ path     = require 'path'
 pubsub   = require 'pubsubcore'
 paperboy = require 'paperboy'
 db       = require './db'
+sys      = require 'sys'
 
 
 # Serve static files out of ./webroot/
@@ -47,8 +48,28 @@ pubsub.add_handler '/req/create_weave', (client, msg) ->
         data: {uuid: uuid}
       }
 
-pubsub.add_handler /^\/weave\/ins\/.*/, (client, msg) ->
-  console.log sys.inspect msg
+# Receive patches. These come in one of three forms:
+#
+# ['i', insertion_patch5c, <weft>], where weft is optional
+# ['d', deletion_patch5c]
+# ['s', save_edits_patch5c]
+#
+# The patch, if valid, will be stored in Redis and then broadcast to
+# the room /weave/<uuid>.
+pubsub.add_handler /^\/weave\/.*/, (client, msg) ->
+  uuid = msg.channel.substr(7)  # Strip off "/weave/"
+  db.weave_exists uuid, (exists) ->
+    if (!exists)
+      client.send {error: 'No weave exists with UUID ' + uuid}
+    else
+      db.add_patch uuid, msg.data, (err) ->
+        if err
+          client.send {error: err}
+        else
+          pubsub.broadcast_room msg.channel, {
+            room: msg.channel,
+            data: msg.data
+          }
 
 # Start the server
 server.listen 8124
