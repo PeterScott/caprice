@@ -5,6 +5,7 @@ pubsub   = require 'pubsubcore'
 paperboy = require 'paperboy'
 db       = require './db'
 
+
 # Serve static files out of ./webroot/
 WEB_ROOT = path.join(path.dirname(__filename), 'webroot')
 server = http.createServer (request, response) ->
@@ -33,7 +34,21 @@ pubsub.add_handler '/req/weave_status', (client, msg) ->
       client.send {
         room: '/rep/weave_status',
         data: {uuid: uuid, weave5c: weave5c, patches: patches}
-        }
+      }
+
+# For debugging use, or if you don't care about security.
+pubsub.add_handler '/req/create_weave', (client, msg) ->
+  db.create_weave (err, uuid) ->
+    if err
+      client.send {error: "Database error: #{err}"}
+    else
+      client.send {
+        room: '/rep/create_weave',
+        data: {uuid: uuid}
+      }
+
+pubsub.add_handler /^\/weave\/ins\/.*/, (client, msg) ->
+  console.log sys.inspect msg
 
 # Start the server
 server.listen 8124

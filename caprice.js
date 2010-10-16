@@ -42,6 +42,21 @@
       });
     });
   });
+  pubsub.add_handler('/req/create_weave', function(client, msg) {
+    return db.create_weave(function(err, uuid) {
+      return err ? client.send({
+        error: ("Database error: " + (err))
+      }) : client.send({
+        room: '/rep/create_weave',
+        data: {
+          uuid: uuid
+        }
+      });
+    });
+  });
+  pubsub.add_handler(/^\/weave\/ins\/.*/, function(client, msg) {
+    return console.log(sys.inspect(msg));
+  });
   server.listen(8124);
   console.log('Server running at http://127.0.0.1:8124/');
 })();
