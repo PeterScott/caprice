@@ -30,6 +30,19 @@ exports.create_weave = (callback) ->
   redis.set uuid + ':weave5c', '\u09500101\u06DD0102', (err) ->
     callback err, uuid
 
+# Create a new, empty weave with the given UUID and call
+# callback(err). If the given weave already exists, it will be
+# overwritten. This is dangerous! If you expose this function to
+# clients, make sure to check to make sure they're not deleting data
+# without permission.
+exports.create_weave_with_uuid = (uuid, callback) ->
+  redis.mset uuid + ':weave5c', '\u09500101\u06DD0102', (err) ->
+    if err
+      callback(err)
+    else
+      redis.del uuid + ':patches', uuid + ':yarn-offset', uuid + ':yarns', (err) ->
+        callback err
+
 # Return true if patch is valid, false otherwise.
 #
 # FIXME: The server should check to make sure that the patch refers

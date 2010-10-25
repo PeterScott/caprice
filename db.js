@@ -46,6 +46,13 @@
       return callback(err, uuid);
     });
   };
+  exports.create_weave_with_uuid = function(uuid, callback) {
+    return redis.mset(uuid + ':weave5c', '\u09500101\u06DD0102', function(err) {
+      return err ? callback(err) : redis.del(uuid + ':patches', uuid + ':yarn-offset', uuid + ':yarns', function(err) {
+        return callback(err);
+      });
+    });
+  };
   patch_valid = function(patch) {
     if (typeof (patch) !== 'object') {
       return false;
