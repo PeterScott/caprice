@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Caprice Testbench</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/pubsubcore-client.js"></script>
+<script type="text/javascript">var pubsub = new PubSubCore();</script>
+<script src="/mars.js"></script>
+<script type="text/javascript">
+w = new Weave(pubsub, '8e0b6526-b72a-11df-5207-001f5b229ea0', 'pjscott');
+pubsub.connect();
+w.subscribe();
+</script>
+</head>
+
+<body>
+  <h1>Testing it now yay</h1>
+
+</body></html>
