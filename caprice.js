@@ -55,8 +55,34 @@
       });
     });
   });
+  pubsub.add_handler('/req/get_yarn', function(client, msg) {
+    var username, uuid;
+    username = msg.data.username;
+    if (!(typeof username !== "undefined" && username !== null)) {
+      client.send({
+        error: 'No username specified'
+      });
+      return null;
+    }
+    uuid = msg.data.uuid;
+    if (!(typeof uuid !== "undefined" && uuid !== null)) {
+      client.send({
+        error: 'No UUID given.'
+      });
+      return null;
+    }
+    return db.get_yarn(uuid, username, function(err, yarn) {
+      return err ? client.send({
+        error: ("Database error: " + (err))
+      }) : client.send({
+        room: '/rep/get_yarn',
+        data: yarn
+      });
+    });
+  });
   pubsub.add_handler(/^\/weave\/.*/, function(client, msg) {
     var uuid;
+    console.log(sys.inspect(msg));
     uuid = msg.channel.substr(7);
     return db.weave_exists(uuid, function(exists) {
       return (!exists) ? client.send({

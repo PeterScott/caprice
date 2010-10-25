@@ -48,6 +48,28 @@ pubsub.add_handler '/req/create_weave', (client, msg) ->
         data: {uuid: uuid}
       }
 
+# A client finds out its yarn by sending a request to this channel,
+# where data specifies `uuid` and `username`. The data send on the rep
+# channel is a string containing the one character.
+pubsub.add_handler '/req/get_yarn', (client, msg) ->
+  username = msg.data.username
+  unless username?
+    client.send {error: 'No username specified'}
+    return
+  uuid = msg.data.uuid
+  unless uuid?
+    client.send {error: 'No UUID given.'}
+    return
+
+  db.get_yarn uuid, username, (err, yarn) ->
+    if err
+      client.send {error: "Database error: #{err}"}
+    else
+      client.send {
+        room: '/rep/get_yarn',
+        data: yarn
+      }
+
 # Receive patches. These come in one of three forms:
 #
 # ['i', insertion_patch5c, <weft>], where weft is optional
@@ -57,6 +79,7 @@ pubsub.add_handler '/req/create_weave', (client, msg) ->
 # The patch, if valid, will be stored in Redis and then broadcast to
 # the room /weave/<uuid>.
 pubsub.add_handler /^\/weave\/.*/, (client, msg) ->
+  console.log(sys.inspect(msg))
   uuid = msg.channel.substr(7)  # Strip off "/weave/"
   db.weave_exists uuid, (exists) ->
     if (!exists)
