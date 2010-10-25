@@ -65,3 +65,30 @@ exports.add_patch = (uuid, patch, callback) ->
     txn.sadd('pending-set', uuid)
     txn.exec (err) ->
       callback err
+
+# Get the yarn for this user in this weave. Currently only handles a
+# single yarn character, so this imposes a limit on the size of a
+# weave. This is stored in the database as a per-weave hash, mapping
+# usernames to yarns. It is called '[uuid]:yarns'. There is an offset
+# counter called '[uuid]:yarn-offset'.
+
+# FIXME: test this
+exports.get_yarn = (uuid, username, callback) ->
+  exports.weave_exists uuid, (exists) ->
+    unless exists
+      callback "Weave does not exist", null
+    else
+      redis.hget uuid+':yarns', username, (err, yarn) ->
+        if err
+          callback(err, null)
+        else if !yarn           # No yarn yet; make a new one
+          redis.incr uuid+':yarn-offset', (err, offset) ->
+            if err
+              callback(err, null)
+            else
+              yarn = String.fromCharCode('a'.charCodeAt(0) + offset - 1)
+              console.log('Made new yarn: ', yarn);
+              redis.hset(uuid+':yarns', username, yarn);
+              callback(null, yarn);
+        else
+          callback(null, yarn.toString('utf-8'))

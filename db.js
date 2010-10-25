@@ -83,4 +83,26 @@
       });
     }
   };
+  exports.get_yarn = function(uuid, username, callback) {
+    return exports.weave_exists(uuid, function(exists) {
+      return !(exists) ? callback("Weave does not exist", null) : redis.hget(uuid + ':yarns', username, function(err, yarn) {
+        if (err) {
+          return callback(err, null);
+        } else if (!yarn) {
+          return redis.incr(uuid + ':yarn-offset', function(err, offset) {
+            if (err) {
+              return callback(err, null);
+            } else {
+              yarn = String.fromCharCode('a'.charCodeAt(0) + offset - 1);
+              console.log('Made new yarn: ', yarn);
+              redis.hset(uuid + ':yarns', username, yarn);
+              return callback(null, yarn);
+            }
+          });
+        } else {
+          return callback(null, yarn.toString('utf-8'));
+        }
+      });
+    });
+  };
 })();
