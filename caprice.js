@@ -26,7 +26,7 @@
     uuid = msg.data.uuid;
     if (!(typeof uuid !== "undefined" && uuid !== null)) {
       client.send({
-        error: 'No UUID given.'
+        error: 'w-s: No UUID given.'
       });
       return null;
     }
@@ -48,7 +48,7 @@
     uuid = msg.data.uuid;
     if (!(typeof uuid !== "undefined" && uuid !== null)) {
       client.send({
-        error: 'No UUID given.'
+        error: 'c-w-i-n-e: No UUID given.'
       });
       return null;
     }
@@ -90,7 +90,7 @@
     uuid = msg.data.uuid;
     if (!(typeof uuid !== "undefined" && uuid !== null)) {
       client.send({
-        error: 'No UUID given.'
+        error: 'g-y: No UUID given.'
       });
       return null;
     }

@@ -26,7 +26,7 @@ pubsub.add_handler '/req/helo', (client, msg) ->
 pubsub.add_handler '/req/weave_status', (client, msg) ->
   uuid = msg.data.uuid
   unless uuid?
-    client.send {error: 'No UUID given.'}
+    client.send {error: 'w-s: No UUID given.'}
     return
   db.get_weave uuid, (err, weave5c, patches) ->
     if err
@@ -41,7 +41,7 @@ pubsub.add_handler '/req/weave_status', (client, msg) ->
 pubsub.add_handler '/req/create_weave_if_not_exist', (client, msg) ->
   uuid = msg.data.uuid
   unless uuid?
-    client.send {error: 'No UUID given.'}
+    client.send {error: 'c-w-i-n-e: No UUID given.'}
     return
   db.weave_exists uuid, (exists) ->
     if exists
@@ -80,7 +80,7 @@ pubsub.add_handler '/req/get_yarn', (client, msg) ->
     return
   uuid = msg.data.uuid
   unless uuid?
-    client.send {error: 'No UUID given.'}
+    client.send {error: 'g-y: No UUID given.'}
     return
 
   db.get_yarn uuid, username, (err, yarn) ->
