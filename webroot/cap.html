@@ -6,13 +6,11 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/pubsubcore-client.js"></script>
-<script type="text/javascript">var pubsub = new PubSubCore();</script>
+<script type="text/javascript">var pubsub = new PubSubCore(); pubsub.connect();</script>
 <script src="/mars.js"></script>
-<script type="text/javascript">
-w = new Weave(pubsub, '8e0b6526-b72a-11df-5207-001f5b229ea0', 'pjscott');
-pubsub.connect();
-w.subscribe();
-</script>
+<script src="/aimo.js"></script>
+<script src="/syncstring.js"></script>
+
 </head>
 
 <body>

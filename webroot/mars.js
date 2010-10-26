@@ -20,7 +20,7 @@ var Weave = function(pubsub, uuid, username) {
     self.status_callback = function() {};
 
     pubsub.add_handler('/rep/weave_status', function(msg) {
-	self.status_callback(msg);
+	self.status_callback(msg.data);
     });
 
     self.get_weave_status = function(callback) {
@@ -39,9 +39,37 @@ var Weave = function(pubsub, uuid, username) {
 	});
 	pubsub.join_room(username, '/weave/' + self.uuid);
     }
+
+    self.created_weave_callback = function() {};
+    pubsub.add_handler('/rep/create_weave', function(msg) {
+	self.uuid = msg.uuid;
+	self.created_weave_callback();
+    });
+
+    // Create a new weave, and set self.uuid to the UUID once it's
+    // here. Then call callback.
+    self.create_weave = function(callback) {
+	self.created_weave_callback = callback;
+	pubsub.send('/req/create_weave', null);
+    }
+
+
+    self.created_de_weave_callback = function() {};
+    pubsub.add_handler('/rep/create_weave_if_not_exist', function(msg) {
+	self.uuid = msg.uuid;
+	self.created_de_weave_callback();
+    });
+
+    // Create a new weave with self.uuid if it does not exist, or do
+    // nothing if it does exist. Then call callback(msg), where msg
+    // does not currently contain any useful information.
+    self.create_weave_if_not_exist = function(callback) {
+	self.created_de_weave_callback = callback;
+	pubsub.send('/req/create_weave_if_not_exist', {uuid: self.uuid});
+    }
     
+
     self.get_yarn_callback = function() {};
-    
     pubsub.add_handler('/rep/get_yarn', function(msg) {
 	self.get_yarn_callback(msg);
     });
@@ -63,4 +91,16 @@ var Weave = function(pubsub, uuid, username) {
     self.save_edits_received = function(msg) {
 	console.log(JSON.stringify(msg));
     }
+}
+
+// Create a new weave, and call callback(weave, status) where status
+// has uuid, weave5c, and patches attributes.
+function subscribe_create(pubsub, username, callback) {
+    var w = new Weave(pubsub, null, username);
+    w.create_weave(function() {
+	w.subscribe();
+	w.get_weave_status(function(status) {
+	    callback(w, status);
+	});
+    });
 }
