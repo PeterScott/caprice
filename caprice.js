@@ -43,6 +43,29 @@
       });
     });
   });
+  pubsub.add_handler('/req/create_weave_if_not_exist', function(client, msg) {
+    var uuid;
+    uuid = msg.data.uuid;
+    if (!(typeof uuid !== "undefined" && uuid !== null)) {
+      client.send({
+        error: 'No UUID given.'
+      });
+      return null;
+    }
+    return db.weave_exists(uuid, function(exists) {
+      return exists ? client.send({
+        room: '/rep/create_weave_if_not_exist',
+        data: null
+      }) : db.create_weave_with_uuid(uuid, function(err) {
+        return err ? client.send({
+          error: ("Database error: " + (err))
+        }) : client.send({
+          room: '/rep/create_weave_if_not_exist',
+          data: null
+        });
+      });
+    });
+  });
   pubsub.add_handler('/req/create_weave', function(client, msg) {
     return db.create_weave(function(err, uuid) {
       return err ? client.send({

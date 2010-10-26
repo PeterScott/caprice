@@ -37,6 +37,28 @@ pubsub.add_handler '/req/weave_status', (client, msg) ->
         data: {uuid: uuid, weave5c: weave5c, patches: patches}
       }
 
+# Creates a weave with the given uuid if it does not exist.
+pubsub.add_handler '/req/create_weave_if_not_exist', (client, msg) ->
+  uuid = msg.data.uuid
+  unless uuid?
+    client.send {error: 'No UUID given.'}
+    return
+  db.weave_exists uuid, (exists) ->
+    if exists
+      client.send {
+        room: '/rep/create_weave_if_not_exist',
+        data: null
+      }
+    else
+      db.create_weave_with_uuid uuid, (err) ->
+        if err
+          client.send {error: "Database error: #{err}"}
+        else
+          client.send {
+            room: '/rep/create_weave_if_not_exist',
+            data: null
+          }
+
 # For debugging use, or if you don't care about security.
 pubsub.add_handler '/req/create_weave', (client, msg) ->
   db.create_weave (err, uuid) ->
