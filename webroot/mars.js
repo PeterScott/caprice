@@ -56,13 +56,11 @@ var Weave = function(pubsub, uuid, username) {
 
     self.created_de_weave_callback = function() {};
     pubsub.add_handler('/rep/create_weave_if_not_exist', function(msg) {
-	self.uuid = msg.uuid;
 	self.created_de_weave_callback();
     });
 
     // Create a new weave with self.uuid if it does not exist, or do
-    // nothing if it does exist. Then call callback(msg), where msg
-    // does not currently contain any useful information.
+    // nothing if it does exist. Then call callback().
     self.create_weave_if_not_exist = function(callback) {
 	self.created_de_weave_callback = callback;
 	pubsub.send('/req/create_weave_if_not_exist', {uuid: self.uuid});
