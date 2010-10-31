@@ -1,0 +1,23 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>Test of stuffs</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="pubsubcore-client.js" type="text/javascript"></script>
+<script type="text/javascript">var pubsub = new PubSubCore(); pubsub.connect();</script>
+<script src="aimo_deunified.js" type="text/javascript" charset="utf-8"></script>
+<script src="mars.js" type="text/javascript"></script>
+<script src="syncstring.js" type="text/javascript"></script>
+<script type="text/javascript" src="diff_match_patch.js"></script>
+<script type="text/javascript" src="sync-textarea.js"></script>
+</head>
+
+<body>
+<h1>Change Demo</h1>
+
+<textarea id="editor" rows="20" cols="60"></textarea>
+
+<script type="text/javascript">
+var aimo = new Aimo("editor", '687647B6-A57E-44C7-B2DB-617FB2EB7F14', randomUUID(), pubsub);
+</script>
+
+</body> </html>
