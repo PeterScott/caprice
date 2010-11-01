@@ -105,7 +105,6 @@
   });
   pubsub.add_handler(/^\/weave\/.*/, function(client, msg) {
     var uuid;
-    console.log(sys.inspect(msg));
     uuid = msg.channel.substr(7);
     return db.weave_exists(uuid, function(exists) {
       return (!exists) ? client.send({

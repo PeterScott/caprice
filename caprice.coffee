@@ -101,7 +101,7 @@ pubsub.add_handler '/req/get_yarn', (client, msg) ->
 # The patch, if valid, will be stored in Redis and then broadcast to
 # the room /weave/<uuid>.
 pubsub.add_handler /^\/weave\/.*/, (client, msg) ->
-  console.log(sys.inspect(msg))
+#  console.log(sys.inspect(msg))
   uuid = msg.channel.substr(7)  # Strip off "/weave/"
   db.weave_exists uuid, (exists) ->
     if (!exists)
