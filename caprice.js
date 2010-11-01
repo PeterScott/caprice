@@ -119,6 +119,20 @@
       });
     });
   });
+  pubsub.add_handler('/req/get_users', function(client, msg) {
+    var uuid;
+    uuid = msg.data.uuid;
+    if (!(typeof uuid !== "undefined" && uuid !== null)) {
+      client.send({
+        error: 'g-u: No UUID given.'
+      });
+      return null;
+    }
+    return client.send({
+      room: '/rep/get_users',
+      data: pubsub.users_in_room('/weave/' + uuid)
+    });
+  });
   server.listen(8124);
   console.log('Server running at http://127.0.0.1:8124/');
 })();

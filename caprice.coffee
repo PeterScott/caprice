@@ -116,6 +116,20 @@ pubsub.add_handler /^\/weave\/.*/, (client, msg) ->
             data: msg.data
           }
 
+# Req/rep for finding out who else is in the room. Send a {uuid: uuid}
+# message to the req channel, and it will respond with a list of the
+# usernames of the people in the given weave, or null if there are no
+# people there or the weave does not exist.
+pubsub.add_handler '/req/get_users', (client, msg) ->
+  uuid = msg.data.uuid
+  unless uuid?
+    client.send {error: 'g-u: No UUID given.'}
+    return
+  client.send {
+    room: '/rep/get_users',
+    data: pubsub.users_in_room '/weave/' + uuid
+  }
+
 # Start the server
 server.listen 8124
 console.log 'Server running at http://127.0.0.1:8124/'

@@ -281,4 +281,57 @@ function Aimo(id, uuid, username, pubsub) {
 	// FIXME: preserve cursor location
 	make_sneaky_change(syncstring.get_string());
     }
+
+    ////////////////////////////////////////
+    // User list tracking
+    ////////////////////////////////////////
+
+    var user_list = {};
+    user_list[username] = true;
+    var num_users = 1;
+
+    function show_user_list() {
+	console.log('Users:', user_list);
+	if (num_users === 1)
+	    var text = 'There is one person editing this right now.';
+	else
+	    var text = 'There are ' + num_users + ' people editing this right now.'
+	document.getElementById('users_in_room').innerHTML = text;
+    }
+
+    function add_user_to_list(user) {
+	if (!user_list.hasOwnProperty(user)) {
+	    user_list[user] = true;
+	    num_users++;
+	}
+    }
+
+    function remove_user_from_list(user) {
+	if (user_list.hasOwnProperty(user)) {
+	    delete user_list[user];
+	    num_users--;
+	}
+    }
+
+    pubsub.add_handler('/rep/get_users', function(msg) {
+	// Add all reported users to the user list
+	for (var i = 0; i < msg.data.length; i++) {
+	    add_user_to_list(msg.data[i]);	    
+	}
+	show_user_list();
+    });
+
+    pubsub.onannounce = function(msg) {
+	if (msg.action === 'connected') {
+	    add_user_to_list(msg.name);
+	    show_user_list();
+	} else if (msg.action === 'disconnected') {
+	    remove_user_from_list(msg.name);
+	    show_user_list();
+	} else {
+	    console.log("PubSubCore Announcement:", msg);
+	}
+    }
+
+    pubsub.send('/req/get_users', {uuid: uuid});
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html> <head>
-<title>Test of stuffs</title>
+<title>Multi-user text editing</title>
 <script src="/socket.io/socket.io.js"></script>
 <script src="pubsubcore-client.js" type="text/javascript"></script>
 <script type="text/javascript">var pubsub = new PubSubCore(); pubsub.connect();</script>
@@ -12,7 +12,9 @@
 </head>
 
 <body>
-<h1>Change Demo</h1>
+<h1>Multi-user text editing</h1>
+
+<p><b id="users_in_room">&nbsp;</b></p>
 
 <textarea id="editor" rows="20" cols="60"></textarea>
 
