@@ -1,0 +1,1 @@
+var pubsub = new PubSubCore(); pubsub.connect();
