@@ -29,7 +29,7 @@ coalesce = {
 	}
 
 	return new_list;
-    }
+    },
 
     // Coalesce spans of inserts and deletes. This does not give an
     // optimal solution, but should pretty much deal with strings of
@@ -79,7 +79,7 @@ coalesce = {
 	}
 
 	return new_list;
-    }
+    },
 
     // Coalesce patches by combining both coalescence passes.
     coalesce_patches: function(patches) {
