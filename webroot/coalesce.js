@@ -83,6 +83,6 @@ coalesce = {
 
     // Coalesce patches by combining both coalescence passes.
     coalesce_patches: function(patches) {
-	return coalesce_insdel(coalesce_1char_typos(patches));
+	return this.coalesce_insdel(this.coalesce_1char_typos(patches));
     }
 }

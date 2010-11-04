@@ -255,7 +255,7 @@ function Aimo(id, uuid, username, pubsub) {
 	else if (num_users === 2)
 	    var text = "There is one other person editing this right now.";
 	else
-	    var text = 'There are ' + (num_users - 1) + 'other people editing this right now.'
+	    var text = 'There are ' + (num_users - 1) + ' other people editing this right now.'
 	document.getElementById('users_in_room').innerHTML = text;
     }
 

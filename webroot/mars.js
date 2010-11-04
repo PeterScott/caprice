@@ -1,18 +1,46 @@
+// Connection code for Caprice. Requires coalesce.js to combine
+// patches; if this file is not available, patches will not be
+// combined, but the code will still work.
 var Weave = function(pubsub, uuid, username) {
     var self = this;
     self.uuid = uuid;
 
+    self.patch_queue = [];
+
+    function queue_patch(patch) {
+	self.patch_queue.push(patch);
+    }
+
+    // Send patches to the server from the queue, as long as the
+    // server is up. If there is more than one patch, attempt to
+    // coalesce the queued patches first.
+    function flush_patch_queue() {
+//	if (coalesce && self.patch_queue.length > 1)
+//	    self.patch_queue = coalesce.coalesce_patches(self.patch_queue);
+
+	while (pubsub.connected && self.patch_queue.length > 0) {
+	    pubsub.send('/weave/' + self.uuid, self.patch_queue.shift())
+	}
+    }
+
+    // Attempt to flush the patch queue every 200 ms.
+    function queue_flusher_process() {
+	flush_patch_queue();
+	if (pubsub.connected) setTimeout(queue_flusher_process, 200);
+    }
+    queue_flusher_process();
+
     self.insert = function(patch5c, weft2) {
-	pubsub.send('/weave/' + self.uuid, ['i', patch5c, weft2]);
+	queue_patch(['i', patch5c, weft2]);
     }
 
     // NOTE: this is called delete in the Python version.
     self.del = function(patch5c) {
-	pubsub.send('/weave/' + self.uuid, ['d', patch5c]);
+	queue_patch(['d', patch5c]);
     }
 
     self.save_edits = function(patch5c) {
-	pubsub.send('/weave/' + self.uuid, ['s', patch5c]);
+	queue_patch(['s', patch5c]);
     }
 
     // Only the most recent status_callback value is called back.
@@ -28,7 +56,11 @@ var Weave = function(pubsub, uuid, username) {
 	pubsub.send('/req/weave_status', {uuid: self.uuid});
     }
 
-    
+    var ps_oc = pubsub.onconnect;
+    pubsub.onconnect = function() {
+	setTimeout(queue_flusher_process, 11000); // 11 seconds to allow for others to reconnect.
+	ps_oc();
+    };
 
     self.subscribe = function() {
 	pubsub.add_handler('/weave/' + self.uuid, function(msg) {
