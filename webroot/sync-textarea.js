@@ -1,5 +1,7 @@
 function Aimo(id, uuid, username, pubsub) {
     var text_state = "";
+    var old_text3 = "";
+    var self = this;
     var focused = false;
     var editor = document.getElementById(id);
 
@@ -36,8 +38,50 @@ function Aimo(id, uuid, username, pubsub) {
 
     // Change the text of the editor without causing a change callback.
     function make_sneaky_change(new_text) {
-	editor.value = new_text;
-	text_state = new_text;
+	// change the text, find out the new position following that,
+	// and move cursor to there. FIXME: does not work in IE.
+	if (typeof editor.selectionStart !== 'undefined') {
+	    // Find out which atom in the text3 precedes the cursor.
+	    var spos = editor.selectionStart, epos = editor.selectionEnd;
+	    var start_atom = old_text3.substring(spos*3-2, spos*3) || '01';
+	    var end_atom = old_text3.substring(epos*3-2, epos*3) || '01';
+	    var start_found = false, end_found = false;
+	    // Change the text
+	    editor.value = new_text;
+	    text_state = new_text;
+	    // Set selection start
+	    var new_text3 = self.syncstring.text3;
+	    if (start_atom == '01') {
+		editor.selectionStart = 0;
+	    } else {
+		for (var i = 0; i < new_text3.length; i += 3) {
+		    if (new_text3.substring(i+1, i+3) == start_atom) {
+			editor.selectionStart = (i + 3) / 3;
+			start_found = true;
+			break;
+		    }
+		}
+	    }
+	    // Set selection end
+	    if (end_atom == '01') {
+		editor.selectionStart = 0;
+	    } else {
+		for (var i = 0; i < new_text3.length; i += 3) {
+		    if (new_text3.substring(i+1, i+3) == end_atom) {
+			editor.selectionEnd = (i + 3) / 3;
+			end_found = true;
+			break;
+		    }
+		}
+	    }
+	    // Handle selection area corner cases. Ugh.
+	    if (start_found && !end_found) editor.selectionEnd = editor.selectionStart;
+	    else if (!start_found && end_found) editor.selectionStart = editor.selectionEnd;
+	} else {
+	    console.log("FIXME: Internet Explorer must die.");
+	    editor.value = new_text;
+	    text_state = new_text;
+	}
     }
 
     ////////////////////////////////////////
@@ -170,8 +214,9 @@ function Aimo(id, uuid, username, pubsub) {
     this.syncstring = syncstring;
     syncstring.set_change_callback(got_remote_change);
     setTimeout(function() {
+	old_text3 = syncstring.text3;
 	make_sneaky_change(syncstring.get_string());
-    }, 1000);
+    }, 1000);			// FIXME: brittle!
 
     // Handle a change from old_text to new_text.
     function change_handler(old_text, new_text) {
@@ -191,8 +236,8 @@ function Aimo(id, uuid, username, pubsub) {
     // Callback for when we received a change from a remote client.
     function got_remote_change() {
 	console.log("Got remote change.");
-	// FIXME: preserve cursor location
 	make_sneaky_change(syncstring.get_string());
+	old_text3 = syncstring.text3;
     }
 
     ////////////////////////////////////////
