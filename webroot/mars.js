@@ -15,8 +15,8 @@ var Weave = function(pubsub, uuid, username) {
     // server is up. If there is more than one patch, attempt to
     // coalesce the queued patches first.
     function flush_patch_queue() {
-//	if (coalesce && self.patch_queue.length > 1)
-//	    self.patch_queue = coalesce.coalesce_patches(self.patch_queue);
+	if (coalesce && self.patch_queue.length > 1)
+	    self.patch_queue = coalesce.coalesce_patches(self.patch_queue);
 
 	while (pubsub.connected && self.patch_queue.length > 0) {
 	    pubsub.send('/weave/' + self.uuid, self.patch_queue.shift())
