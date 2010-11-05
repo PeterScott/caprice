@@ -58,8 +58,11 @@ var Weave = function(pubsub, uuid, username) {
 
     var ps_oc = pubsub.onconnect;
     pubsub.onconnect = function() {
-	setTimeout(queue_flusher_process, 11000); // 11 seconds to allow for others to reconnect.
-	ps_oc();
+	setTimeout(queue_flusher_process, 200);
+	pubsub.obconnect = function() {
+	    setTimeout(queue_flusher_process, 11000); // 11 seconds to allow for others to reconnect.
+	    ps_oc();
+	};
     };
 
     self.subscribe = function() {

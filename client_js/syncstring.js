@@ -70,7 +70,7 @@ function SyncString(uuid, username, pubsub) {
 	    console.log("My yarn: " + self.yarn);
 	    self.weave.get_weave_status(function(status) {
 		self.weave5c = status.weave5c;
-		console.log('Starting weave5c: ' + self.weave5c);
+//		console.log('Starting weave5c: ' + self.weave5c);
 		for (var i = 0; i < status.patches.length; i++)
 		    self.apply_patch(status.patches[i]);
 		console.log('After patches: ' + self.weave5c);
@@ -99,7 +99,7 @@ function SyncString(uuid, username, pubsub) {
 
     // Apply a patch, in list format, to self.weave5c
     self.apply_patch = function(patch, scour_it) {
-	console.log('Applying patch:', patch);
+	// console.log('Applying patch:', patch);
 	if      (patch[0] === 'i')
             self.weave5c = apply_insert_patch(self.weave5c, patch[1], patch[2]);
         else if (patch[0] === 'd')
