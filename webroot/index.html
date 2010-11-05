@@ -15,6 +15,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+
   <link rel="stylesheet" href="css/style.css" type="text/css">
 
 </head>
@@ -23,23 +24,27 @@
 
   <div id="container">
     <header>
-      <h1>Anyone with this URL can edit the text simultaneously.</h1>
-      <p><b id="users_in_room">&nbsp;</b></p>
+      <h1>This is a notepad that more than one person can edit at once.</h1>
+      <p id="users_in_room">&nbsp;</p>
     </header>
     
     <div id="main">
-      <textarea id="editor" rows="20" cols="60"></textarea>
+      <textarea id="editor" rows="35" cols="60"></textarea>
     </div>
     
     <footer>
-
+      <b>Instructions:</b> To share this notepad with other people, just copy and paste
+      the address of this page into an email or something. As soon as
+      they type something, it'll show up on your screen, and vice versa.
     </footer>
   </div> <!-- end of #container -->
 
-
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="js/jquery-1.4.3.js"%3E%3C/script%3E'))</script>
-  
+  <script src="js/jquery-1.4.3.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="js/script.js"></script>
+
+  <script type="text/javascript">
+    var aimo = new Aimo("editor", '687647B6-A57E-44C7-B2DB-617FB2EB7F14', randomUUID(), pubsub);
+  </script>
 </body>
 </html>
