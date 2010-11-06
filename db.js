@@ -40,17 +40,25 @@
     });
   };
   exports.create_weave = function(callback) {
-    var uuid;
+    var multi, timestamp, uuid;
     uuid = libuuid.generate();
-    return redis.set(uuid + ':weave5c', '\u09500101\u06DD0102', function(err) {
+    timestamp = (new Date()).valueOf();
+    multi = redis.multi();
+    multi.zadd('empty-weaves', timestamp, uuid);
+    multi.set(uuid + ':weave5c', '\u09500101\u06DD0102');
+    return multi.exec(function(err) {
       return callback(err, uuid);
     });
   };
   exports.create_weave_with_uuid = function(uuid, callback) {
-    return redis.mset(uuid + ':weave5c', '\u09500101\u06DD0102', function(err) {
-      return err ? callback(err) : redis.del(uuid + ':patches', uuid + ':yarn-offset', uuid + ':yarns', function(err) {
-        return callback(err);
-      });
+    var multi, timestamp;
+    timestamp = (new Date()).valueOf();
+    multi = redis.multi();
+    multi.set(uuid + ':weave5c', '\u09500101\u06DD0102');
+    multi.del(uuid + ':patches', uuid + ':yarn-offset', uuid + ':yarns');
+    multi.zadd('empty-weaves', timestamp, uuid);
+    return multi.exec(function(err) {
+      return callback(err);
     });
   };
   patch_valid = function(patch) {
@@ -85,6 +93,7 @@
       txn = redis.multi();
       txn.rpush(uuid + ':patches', JSON.stringify(patch));
       txn.sadd('pending-set', uuid);
+      txn.zrem('empty-weaves', uuid);
       return txn.exec(function(err) {
         return callback(err);
       });

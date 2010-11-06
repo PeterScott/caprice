@@ -27,7 +27,11 @@ exports.get_weave = (uuid, callback) ->
 # Create a new, empty weave and call callback(err, uuid).
 exports.create_weave = (callback) ->
   uuid = libuuid.generate()
-  redis.set uuid + ':weave5c', '\u09500101\u06DD0102', (err) ->
+  timestamp = (new Date()).valueOf() # ms since epoch
+  multi = redis.multi()
+  multi.zadd 'empty-weaves', timestamp, uuid
+  multi.set uuid + ':weave5c', '\u09500101\u06DD0102'
+  multi.exec (err) ->
     callback err, uuid
 
 # Create a new, empty weave with the given UUID and call
@@ -36,12 +40,13 @@ exports.create_weave = (callback) ->
 # clients, make sure to check to make sure they're not deleting data
 # without permission.
 exports.create_weave_with_uuid = (uuid, callback) ->
-  redis.mset uuid + ':weave5c', '\u09500101\u06DD0102', (err) ->
-    if err
-      callback(err)
-    else
-      redis.del uuid + ':patches', uuid + ':yarn-offset', uuid + ':yarns', (err) ->
-        callback err
+  timestamp = (new Date()).valueOf() # ms since epoch
+  multi = redis.multi()
+  multi.set uuid + ':weave5c', '\u09500101\u06DD0102'
+  multi.del uuid + ':patches', uuid + ':yarn-offset', uuid + ':yarns'
+  multi.zadd 'empty-weaves', timestamp, uuid
+  multi.exec (err) ->
+    callback err
 
 # Return true if patch is valid, false otherwise.
 #
@@ -76,6 +81,7 @@ exports.add_patch = (uuid, patch, callback) ->
     txn = redis.multi()
     txn.rpush(uuid + ':patches', JSON.stringify(patch))
     txn.sadd('pending-set', uuid)
+    txn.zrem('empty-weaves', uuid)
     txn.exec (err) ->
       callback err
 
