@@ -16,7 +16,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
-  <link rel="stylesheet" href="css/style.css" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
 
 </head>
 
@@ -39,12 +39,12 @@
     </footer>
   </div> <!-- end of #container -->
 
-  <script src="js/jquery-1.4.3.js"></script>
+  <script src="/js/jquery-1.4.3.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="js/script.js"></script>
+  <script src="/js/script.js"></script>
 
   <script type="text/javascript">
-    var aimo = new Aimo("editor", '687647B6-A57E-44C7-B2DB-617FB2EB7F14', randomUUID(), pubsub);
+    var aimo = new Aimo("editor", window.location.pathname.substring(9).toLowerCase(), randomUUID(), pubsub);
   </script>
 </body>
 </html>

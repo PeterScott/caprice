@@ -5,12 +5,33 @@ pubsub   = require 'pubsubcore'
 paperboy = require 'paperboy'
 db       = require './db'
 sys      = require 'sys'
+libuuid  = require 'uuid'
+urlparse = (require 'url').parse
 
 
 # Serve static files out of ./webroot/
 WEB_ROOT = path.join(path.dirname(__filename), 'webroot')
-server = http.createServer (request, response) ->
-  paperboy.deliver(WEB_ROOT, request, response)
+server = http.createServer (req, res) ->
+  # Take a look at the request string
+  parts = urlparse req.url
+  lcase_url = parts.pathname.toLowerCase()
+
+  # Redirect to /notepad/[uuid] from '/' and '/notepad', optionally
+  # with a trailing slash.
+  if (req.method == 'GET' and parts.pathname.match(/\/(notepad\/?)?$/))
+    uuid = libuuid.generate().toLowerCase()
+    res.writeHead 302, 'Redirecting to new notepad', {
+      'Location': '/notepad/' + uuid,
+      'Content-Type': 'text/html'
+    }
+    res.end '<h1>Redirecting to new notepad</h1>\n'
+  # If request is for /notepad/[uuid], serve index.html?uuid=[uuid]
+  else if (req.method == 'GET' and lcase_url.match(/\/notepad\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/?$/))
+    uuid = lcase_url.substring(9)
+    req.url = '/index.html?uuid=' + uuid
+    paperboy.deliver(WEB_ROOT, req, res)
+  else
+    paperboy.deliver(WEB_ROOT, req, res)
 
 # Attach pubsubcore to the HTTP server.
 pubsub.listen(server)

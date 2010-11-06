@@ -1,14 +1,32 @@
 (function() {
-  var WEB_ROOT, db, http, paperboy, path, pubsub, server, sys;
+  var WEB_ROOT, db, http, libuuid, paperboy, path, pubsub, server, sys, urlparse;
   http = require('http');
   path = require('path');
   pubsub = require('pubsubcore');
   paperboy = require('paperboy');
   db = require('./db');
   sys = require('sys');
+  libuuid = require('uuid');
+  urlparse = (require('url')).parse;
   WEB_ROOT = path.join(path.dirname(__filename), 'webroot');
-  server = http.createServer(function(request, response) {
-    return paperboy.deliver(WEB_ROOT, request, response);
+  server = http.createServer(function(req, res) {
+    var lcase_url, parts, uuid;
+    parts = urlparse(req.url);
+    lcase_url = parts.pathname.toLowerCase();
+    if (req.method === 'GET' && parts.pathname.match(/\/(notepad\/?)?$/)) {
+      uuid = libuuid.generate().toLowerCase();
+      res.writeHead(302, 'Redirecting to new notepad', {
+        'Location': '/notepad/' + uuid,
+        'Content-Type': 'text/html'
+      });
+      return res.end('<h1>Redirecting to new notepad</h1>\n');
+    } else if (req.method === 'GET' && lcase_url.match(/\/notepad\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/?$/)) {
+      uuid = lcase_url.substring(9);
+      req.url = '/index.html?uuid=' + uuid;
+      return paperboy.deliver(WEB_ROOT, req, res);
+    } else {
+      return paperboy.deliver(WEB_ROOT, req, res);
+    }
   });
   pubsub.listen(server);
   pubsub.add_handler('/req/helo', function(client, msg) {
