@@ -52,6 +52,9 @@ exports.create_weave_with_uuid = (uuid, callback) ->
 #
 # FIXME: The server should check to make sure that the patch refers
 # to predecessor nodes which are under the current awareness weft.
+#
+# FIXME: check to make sure that all atoms in the patch5c have the
+# same user_id, and that it corresponds to the user.
 patch_valid = (patch) ->
   # Patches must be lists; here, we check object type and length
   if typeof(patch) != 'object' then return false
@@ -69,9 +72,6 @@ patch_valid = (patch) ->
 
 # Add a patch to a weave, and call callback(err). Assumes that the
 # weave exists.
-#
-# FIXME: check to make sure that all atoms in the patch5c have the
-# same user_id, and that it corresponds to the user.
 exports.add_patch = (uuid, patch, callback) ->
   # Validate patch. If it's invalid, error.
   unless patch_valid(patch)
@@ -90,8 +90,6 @@ exports.add_patch = (uuid, patch, callback) ->
 # weave. This is stored in the database as a per-weave hash, mapping
 # usernames to yarns. It is called '[uuid]:yarns'. There is an offset
 # counter called '[uuid]:yarn-offset'.
-
-# FIXME: test this
 exports.get_yarn = (uuid, username, callback) ->
   exports.weave_exists uuid, (exists) ->
     unless exists
