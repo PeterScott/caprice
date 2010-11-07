@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// Aimo base library, in JavaScript.
+// Causal tree weft manipulation library
 
 ////////////////////////////////////////////////////////////
 // Utility functions
