@@ -2,7 +2,7 @@
 // supports insert and delete methods, and synchronizes its internal
 // state with a remote server.
 
-// Requires aimo.js, mars.js
+// Requires ctree.js, protocol.js
 
 // Random UUID generator function, taken from Robert Kieffer. This
 // function is open source, as are any modified versions of it.

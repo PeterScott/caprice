@@ -1,4 +1,4 @@
-function Aimo(id, uuid, username, pubsub) {
+function CapriceEditor(id, uuid, username, pubsub) {
     var text_state = "";
     var old_text3 = "";
     var self = this;

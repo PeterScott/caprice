@@ -8,16 +8,11 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-
-  <title></title>
-  <meta name="description" content="">
-  <meta name="author" content="">
-
+  <title>Caprice multi-user realtime notepad</title>
+  <meta name="description" content="A notepad that more than one person can edit at once">
+  <meta name="author" content="Peter Scott">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
   <link rel="stylesheet" href="/css/style.css" type="text/css">
-
 </head>
 
 <body>
@@ -39,12 +34,12 @@
     </footer>
   </div> <!-- end of #container -->
 
-  <script src="/js/jquery-1.4.3.js"></script>
+  <!-- The necessary scripts: socket.io and the caprice client -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/script.js"></script>
-
+  <script src="/js/caprice-client.js"></script>
   <script type="text/javascript">
-    var aimo = new Aimo("editor", window.location.pathname.substring(9).toLowerCase(), randomUUID(), pubsub);
+    var editor = new CapriceEditor("editor", window.location.pathname.substring(9).toLowerCase(), randomUUID(), pubsub);
   </script>
+  
 </body>
 </html>
