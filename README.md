@@ -15,17 +15,23 @@ the prerequisites:
 
     npm install coffee-script paperboy redis simplesets socket.io uuid
     git clone git@github.com:PeterScott/pubsubcore.git
-    cd pubsubcore
-    npm link .
+    npm link pubsubcore
+    git clone git@github.com:PeterScott/caprice.git
+    cd caprice
+    make
+
+That make was to compile and minify the client JavaScript, which is
+created by bundling together a lot of JS files in `client/` with
+Google's Closure Compiler.
     
-Then run a couple of daemons:
+Now, run a couple of daemons:
 
     python patcher/patcherd.py &
     coffee server/caprice.coffee &
     
 Turn your browser to [http://localhost:8124](http://localhost:8124/)
 to try it out. To see the very minimal source code needed to include a
-shared textarea in your HTML file, see server/webroot/index.html and
+shared textarea in your HTML file, see `server/webroot/index.html` and
 behold the simplicity.
 
 Note that this is a pre-alpha double-plus-unrelease. You have been warned.
