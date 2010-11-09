@@ -14,9 +14,9 @@ several people can edit at once. To run it, first make sure you have
 the prerequisites:
 
     npm install coffee-script paperboy redis simplesets socket.io uuid
-    git clone git@github.com:PeterScott/pubsubcore.git
+    git clone git://github.com/PeterScott/pubsubcore.git
     npm link pubsubcore
-    git clone git@github.com:PeterScott/caprice.git
+    git clone git://github.com/PeterScott/caprice.git
     cd caprice
     make
 
