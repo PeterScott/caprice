@@ -53,13 +53,18 @@ function SSWeave(parent, pubsub, uuid, username) {
     return weave;
 }
 
-// Note: this is a class constructor. Call with new keyword.
-function SyncString(uuid, username, pubsub) {
+// Note: this is a class constructor. Call with new keyword.  A
+// synchronized string, with the given UUID or a randomly-generated
+// one, a given username, a given pubsub connection object, an
+// optional change callback, and an optional callback function to be
+// called with the syncstring as an argument when self.text3 is ready
+// to be read.
+function SyncString(uuid, username, pubsub, change_callback, ready_callback) {
     var self = this;
     
     self.uuid = uuid || randomUUID();
     console.log('uuid:', self.uuid);
-    self.change_callback = function() {}; // no-op by default.
+    self.change_callback = change_callback || (function() {});
 
     self.weave = SSWeave(this, pubsub, self.uuid, username);
     // Check if this weave exists. If not, create it.
@@ -93,6 +98,7 @@ function SyncString(uuid, username, pubsub) {
 					  false, self.incr_weft);
 		    console.log('weft: ' + weft_to_weft2(self.incr_weft));
 		}
+		if (ready_callback) ready_callback(self);
 	    });
 	});
     });

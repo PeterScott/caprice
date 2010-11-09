@@ -1,4 +1,4 @@
-function CapriceEditor(id, uuid, username, pubsub) {
+function CapriceEditorCore(id, uuid, username, pubsub) {
     var text_state = "";
     var old_text3 = "";
     var self = this;
@@ -210,13 +210,13 @@ function CapriceEditor(id, uuid, username, pubsub) {
     ////////////////////////////////////////
 
     // Set up connection to server.
-    var syncstring = new SyncString(uuid, username, pubsub);
-    this.syncstring = syncstring;
-    syncstring.set_change_callback(got_remote_change);
-    setTimeout(function() {
+    var syncstring = new SyncString(uuid, username, pubsub, got_remote_change, function(syncstring) {
 	old_text3 = syncstring.text3;
 	make_sneaky_change(syncstring.get_string());
-    }, 1000);			// FIXME: brittle!
+    });
+
+    // For debugging, expose this bit of internals.
+    self.syncstring = syncstring;
 
     // Handle a change from old_text to new_text.
     function change_handler(old_text, new_text) {
@@ -294,4 +294,31 @@ function CapriceEditor(id, uuid, username, pubsub) {
     }
 
     pubsub.send('/req/get_users', {uuid: uuid});
+}
+
+// A wrapper for CapriceEditorCore which instantiates its inner
+// object, self.core, only after pubsub has connected to the
+// server. Until this happens, it waits for the pubsubcore onconnect
+// event. However, the constructor returns immediately, with self.core
+// set to null. If callback is given, it will be called with self.core
+// as its argument as soon as the CapriceEditorCore is instantiated.
+function CapriceEditor(id, uuid, username, pubsub, callback) {
+    var self = this;
+    self.core = null;
+
+    if (pubsub.connected) {
+	console.log('Pubsub already connected. Great.');
+	self.core = new CapriceEditorCore(id, uuid, username, pubsub);
+	callback && callback(self.core);
+    } else {
+	console.log('Pubsub not connected yet. Registering callback.');
+	var old_onconnect = pubsub.onconnect;
+	pubsub.onconnect = function() {
+	    old_onconnect();
+	    pubsub.onconnect = old_onconnect;
+	    console.log('Pubsub connected; making editor core');
+	    self.core = new CapriceEditorCore(id, uuid, username, pubsub);
+	    callback && callback(self.core);
+	}
+    }
 }
