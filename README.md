@@ -26,6 +26,7 @@ Google's Closure Compiler.
     
 Now, run a couple of daemons:
 
+    redis-server &
     python patcher/patcherd.py &
     coffee server/caprice.coffee &
     
