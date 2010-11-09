@@ -1,5 +1,5 @@
 (function() {
-  var WEB_ROOT, db, http, libuuid, paperboy, path, pubsub, server, sys, urlparse;
+  var WEB_ROOT, db, http, libuuid, paperboy, path, port, pubsub, server, sys, urlparse;
   http = require('http');
   path = require('path');
   pubsub = require('pubsubcore');
@@ -151,6 +151,7 @@
       data: pubsub.users_in_room('/weave/' + uuid)
     });
   });
-  server.listen(8124);
-  console.log('Server running at http://127.0.0.1:8124/');
+  port = parseInt(process.argv[0] || '8124', 10);
+  server.listen(port);
+  console.log("Server running on port " + (port));
 })();

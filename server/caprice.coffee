@@ -151,6 +151,7 @@ pubsub.add_handler '/req/get_users', (client, msg) ->
     data: pubsub.users_in_room '/weave/' + uuid
   }
 
-# Start the server
-server.listen 8124
-console.log 'Server running at http://127.0.0.1:8124/'
+# Start the server on the port specified by argv[0], or 8124 by default.
+port = parseInt(process.argv[0] || '8124', 10);
+server.listen port
+console.log "Server running on port #{port}"
