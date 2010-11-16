@@ -4,4 +4,4 @@
 // list. This does nothing on browsers (e.g. Safari and Chrome) which
 // have console.log by default.
 
-window.console = console || { log: function() {} };
+window.console = ('console' in window) ? window.console : { log: function() {} };

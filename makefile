@@ -1,5 +1,5 @@
-CLOSURE_OPTS = --compilation_level SIMPLE_OPTIMIZATIONS
-#CLOSURE_OPTS = --compilation_level WHITESPACE_ONLY --formatting PRETTY_PRINT
+#CLOSURE_OPTS = --compilation_level SIMPLE_OPTIMIZATIONS
+CLOSURE_OPTS = --compilation_level WHITESPACE_ONLY --formatting PRETTY_PRINT
 
 .PHONY: js clean
 

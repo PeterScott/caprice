@@ -220,6 +220,10 @@ function CapriceEditorCore(id, uuid, username, pubsub) {
 
     // Handle a change from old_text to new_text.
     function change_handler(old_text, new_text) {
+	// If syncstring isn't defined yet, for some stupid reason,
+	// wait until later.
+	if (typeof(syncstring) === "undefined") return;
+
 	var patches = get_patch(old_text, new_text);
 	for (var i = 0; i < patches.length; i++) {
 	    var patch = patches[i];
