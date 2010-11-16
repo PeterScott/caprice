@@ -1,7 +1,7 @@
 redislib = require 'redis'
 redis    = redislib.createClient()
 libuuid  = require 'uuid'
-sys      = require 'sys'
+util     = require 'util'
 
 # Does a weave with given UUID exist? Calls callback.
 exports.weave_exists = (uuid, callback) ->
@@ -75,7 +75,7 @@ patch_valid = (patch) ->
 exports.add_patch = (uuid, patch, callback) ->
   # Validate patch. If it's invalid, error.
   unless patch_valid(patch)
-    callback('Invalid patch: ' + sys.inspect(patch))
+    callback('Invalid patch: ' + util.inspect(patch))
   else
     # Add patch, and mark this weave for patching
     txn = redis.multi()

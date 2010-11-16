@@ -1,11 +1,11 @@
 (function() {
-  var WEB_ROOT, db, http, libuuid, paperboy, path, port, pubsub, server, sys, urlparse;
+  var WEB_ROOT, db, http, libuuid, paperboy, path, port, pubsub, server, urlparse, util;
   http = require('http');
   path = require('path');
   pubsub = require('pubsubcore');
   paperboy = require('paperboy');
   db = require('./db');
-  sys = require('sys');
+  util = require('util');
   libuuid = require('uuid');
   urlparse = (require('url')).parse;
   WEB_ROOT = path.join(path.dirname(__filename), 'webroot');
@@ -154,4 +154,4 @@
   port = parseInt(process.argv[0] || '8124', 10);
   server.listen(port);
   console.log("Server running on port " + (port));
-})();
+}).call(this);

@@ -4,7 +4,7 @@ path     = require 'path'
 pubsub   = require 'pubsubcore'
 paperboy = require 'paperboy'
 db       = require './db'
-sys      = require 'sys'
+util     = require 'util'
 libuuid  = require 'uuid'
 urlparse = (require 'url').parse
 
@@ -122,7 +122,7 @@ pubsub.add_handler '/req/get_yarn', (client, msg) ->
 # The patch, if valid, will be stored in Redis and then broadcast to
 # the room /weave/<uuid>.
 pubsub.add_handler /^\/weave\/.*/, (client, msg) ->
-#  console.log(sys.inspect(msg))
+#  console.log(util.inspect(msg))
   uuid = msg.channel.substr(7)  # Strip off "/weave/"
   db.weave_exists uuid, (exists) ->
     if (!exists)

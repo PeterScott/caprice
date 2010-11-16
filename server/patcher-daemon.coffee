@@ -5,7 +5,7 @@
 
 redislib = require 'redis'
 redis    = redislib.createClient()
-sys      = require 'sys'
+util     = require 'util'
 ctree    = require './ctree'
 db       = require './db'
 
@@ -16,7 +16,7 @@ randrange = (low, high) ->
 patch_poller_process = () ->
   redis.spop 'pending-set', (err, uuid) ->
     if err
-      console.log "Redis error:", sys.inspect err
+      console.log "Redis error:", util.inspect err
       # Delay: 1 second +/- 300 ms.
       setTimeout patch_poller_process, randrange(700, 1300)
     else if uuid is null
@@ -33,7 +33,7 @@ patch_poller_process = () ->
 process_uuid = (uuid, callback) ->
   db.get_weave uuid, (err, weave5c, patches) ->
     if err
-      console.log "Error:", sys.inspect err
+      console.log "Error:", util.inspect err
     else
       console.log "Applying #{patches.length} patches to weave #{uuid}"
       for patch in patches
@@ -45,9 +45,9 @@ process_uuid = (uuid, callback) ->
           else if patch[0] is 's'
             weave5c = apply_save_edits_patch weave5c patch[1]
           else
-            console.log "Error: invalid patch:", sys.inspect patch
+            console.log "Error: invalid patch:", util.inspect patch
         catch error
-          console.log "Error:", sys.inspect error
+          console.log "Error:", util.inspect error
       write_uuid uuid, weave5c, patches.length, callback
 
 # Write back changes to a weave. Changes the weave5c, and removes the
@@ -60,14 +60,14 @@ write_uuid = (uuid, weave5c, applied_patches, callback) ->
   multi.llen uuid + ':patches'
   multi.exec (err, replies) ->
     if err
-      console.log "Redis error:", sys.inspect err
+      console.log "Redis error:", util.inspect err
       callback()
     else
       remaining_patches = parseInt(replies[2].toString(), 10)
       if remaining_patches > 0
         console.log "Adding #{uuid} back to pending set"
         redis.sadd 'pending-set', uuid, (err) ->
-          if err then console.log "Redis error:", sys.inspect err
+          if err then console.log "Redis error:", util.inspect err
           callback()
       else
         callback()
